@@ -1,0 +1,6 @@
+# lib/worker-bundle.js is generated but IS committed on purpose: the shell has
+# no build step, so the file has to be in the repo. tests/run.mjs fails if it
+# is stale, which is what keeps it honest.
+
+*.swp
+.DS_Store

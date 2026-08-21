@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "iain.toolroll",
+  "name": "Toolroll",
+  "version": "1.0.0",
+  "author": "Iain Freestone",
+  "description": "Thirty-five offline developer tools — JSON, JWT, hashes, formatters, converters and generators — with clipboard detection and chainable pipelines.",
+  "kinds": [
+    "overlay"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "overlay": "Toolroll.qml"
+  },
+  "license": "MIT"
+}
