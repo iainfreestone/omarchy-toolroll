@@ -915,8 +915,20 @@ Item {
   // account on the machine. Re-applied after each write because an atomic write
   // replaces the file, and its replacement is a new inode with fresh
   // permissions.
+  // Only when the mode is actually wrong, which is not an optimisation.
+  //
+  // chainsFile watches its own file and reloads on change, and chmod counts as
+  // a change: an unconditional chmod here fired inotify, which reloaded, which
+  // chmod'd again, forever. Every pass rewrote the chain list and rebuilt every
+  // row in the sidebar, so the scrollbar flickered and a click on a pin landed
+  // on a delegate that had already been destroyed. Testing first means the
+  // first pass fixes the mode and the second does nothing at all.
+  //
+  // A shell is needed for the test, and it gets a path this plugin built from
+  // $HOME, passed as an argument rather than interpolated into the script.
   function restrictToOwner(path) {
-    Quickshell.execDetached(["chmod", "600", path])
+    Quickshell.execDetached(["sh", "-c",
+      "test \"$(stat -c %a \"$1\")\" = 600 || chmod 600 \"$1\"", "sh", path])
   }
 
   function saveState() {

@@ -1855,7 +1855,12 @@ describe("the files the plugin writes are owner-only")
 // session store holds whatever was last in each tool.
 {
   const shell = fsSync.readFileSync(pluginRoot + "/Toolroll.qml", "utf8")
-  ok("permissions are restricted explicitly", /chmod", "600"/.test(shell))
+  ok("permissions are restricted explicitly", /chmod 600/.test(shell))
+  // Unconditionally chmod-ing looped: the chains file watches itself, chmod
+  // counts as a change, and the reload chmod'd again — rebuilding the sidebar
+  // continuously, so the scrollbar flickered and pins could not be clicked.
+  ok("and only when the mode is actually wrong, or it loops against its own watcher",
+    /test .*stat -c %a/.test(shell), "restrictToOwner is unconditional again")
   // An atomic write replaces the file, so the mode has to be re-applied rather
   // than set once at creation.
   const calls = (shell.match(/restrictToOwner\(/g) || []).length
