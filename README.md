@@ -9,9 +9,9 @@ no telemetry, no second app to launch.
 
 A tool roll is the canvas wrap you unroll, take one tool from, and roll away
 again — which is what this is: it appears on a keystroke, does the one thing,
-and gets out of your way. Unless you pin it, in which case it stays.
+and gets out of your way. Unless you detach it, in which case it stays.
 
-![Toolroll](preview.png)
+![Toolroll decoding a JWT, with the tool list, chains and pinned tools down the left](preview.png)
 
 It opens on a key you choose — see [Install](#install).
 
@@ -25,7 +25,7 @@ It opens on a key you choose — see [Install](#install).
 
 ```bash
 omarchy plugin add https://github.com/iainfreestone/omarchy-toolroll.git
-omarchy plugin enable iain.toolroll
+omarchy plugin enable iainfreestone.toolroll
 ```
 
 Plugins land disabled so you can read the code before running it. This one is
@@ -40,7 +40,7 @@ and paste the command:
 
 ```lua
 -- ~/.config/hypr/bindings.lua
-o.bind("<your key>", "Toolroll", "omarchy-shell shell toggle iain.toolroll")
+o.bind("<your key>", "Toolroll", "omarchy-shell shell toggle iainfreestone.toolroll")
 ```
 
 ## Requirements
@@ -168,7 +168,7 @@ the key:
 ```lua
 -- ~/.config/hypr/bindings.lua
 o.bind("<your key>", "Toolroll (selection)",
-  "omarchy-shell shell toggle iain.toolroll '{\"source\":\"primary\"}'")
+  "omarchy-shell shell toggle iainfreestone.toolroll '{\"source\":\"primary\"}'")
 ```
 
 Every input pane also has a paste-the-selection button next to paste-from-
@@ -208,6 +208,11 @@ where no single tool gets you from what you have to what you want:
 | **YAML config fingerprint** | YAML→JSON → minify, sorted keys → SHA-256 | Are these two configs the same? Reformatting and key order can't hide from a digest |
 | **Extract unique matches** | RegExp → dedupe → sort | Every match in a wall of log, repeats dropped, sorted — the thing everyone does by hand |
 
+![A three-step chain: YAML to JSON, minified with sorted keys, then hashed — with each step's options and what it did](chains.png)
+
+Above: the fingerprint chain on a small service config, each step showing its
+own options and what it did with what it was handed.
+
 A chain can also **end in an image**. `QR Code` as the last step renders the
 picture in the output pane instead of echoing the text that went into it, with
 **Copy image** and **Save** in the pane header — copy puts a real `image/png`
@@ -222,7 +227,7 @@ being told what is wrong beats being refused.
 ### Running a chain without opening anything
 
 ```bash
-omarchy-shell shell call iain.toolroll run '{"chain":"url-param-json"}'
+omarchy-shell shell call iainfreestone.toolroll run '{"chain":"url-param-json"}'
 ```
 
 That reads the clipboard, runs the chain, writes the result back, and posts a
@@ -232,7 +237,7 @@ interaction is: copy, press, paste.
 ```lua
 -- ~/.config/hypr/bindings.lua
 o.bind("<your key>", "Decode URL param",
-  "omarchy-shell shell call iain.toolroll run '{\"chain\":\"url-param-json\"}'")
+  "omarchy-shell shell call iainfreestone.toolroll run '{\"chain\":\"url-param-json\"}'")
 ```
 
 Tools whose input is an image work headlessly too, reading the clipboard's
@@ -357,21 +362,25 @@ By default it is a **summoned overlay**: scrim, exclusive keyboard focus,
 convert one thing and get out. That is the right shape for the clipboard-
 detect-and-go flow, and it matches the shell's other overlays.
 
-The pin button in the header turns it into an **ordinary window** — Hyprland
-tiles it, moves it, resizes it and sends it to another workspace like anything
-else, with no scrim and nothing stolen from the window underneath. That is the
-right shape for keeping it open beside your editor. Both have first-party
-precedent: the clipboard and emoji overlays are the former, `omarchy.dev-gallery`
-is the latter.
+**Detach** in the header turns it into an ordinary window — Hyprland tiles it,
+moves it, resizes it and sends it to another workspace like anything else, with
+no scrim and nothing stolen from the window underneath. That is the right shape
+for a longer session: building a chain, working through a big document, keeping
+it open beside your editor. Both have first-party precedent: the clipboard and
+emoji overlays are the former, `omarchy.dev-gallery` is the latter.
 
 The UI itself exists once and is re-parented between the two surfaces, so
-pinning preserves everything — input, options, scroll position, focus. `Escape`
-closes the overlay but not the pinned window; that closes the way every other
-window does. The choice is remembered between sessions, and is also reachable
-over IPC if you would rather bind it:
+detaching preserves everything — input, options, scroll position, focus.
+
+The overlay is a layer-shell surface rather than a window, which is worth
+knowing because it means your window-management keys do not apply to it:
+`SUPER+W` and friends find no active window and do nothing, exactly as they do
+over the clipboard and emoji overlays. `Escape` is how it goes away. A detached
+window is an ordinary toplevel and closes like any other. The choice is remembered between sessions, and is also
+reachable over IPC if you would rather bind it:
 
 ```bash
-omarchy-shell shell call iain.toolroll setPinned true
+omarchy-shell shell call iainfreestone.toolroll setDetached true
 ```
 
 If you would rather it floated than tiled:
@@ -395,7 +404,8 @@ o.window({ class = "org.quickshell", title = "Toolroll" }, { float = true })
 | `Ctrl+Shift+C` | copy the output |
 | `Ctrl+Shift+V` | paste into the input |
 | `Ctrl+Enter` | run / re-run / regenerate |
-| `Esc` | back to search, then close (the pinned window stays) |
+| `Esc` | back to search, then close the overlay |
+| `SUPER+W` | closes a **detached** window; does nothing to the overlay, which is not a window |
 
 Clicking any row of a report copies that value.
 
@@ -512,7 +522,7 @@ The libraries under `lib/` are QML-flavoured JavaScript (`.pragma library`,
 exact same source the shell runs:
 
 ```bash
-node ~/.config/omarchy/plugins/iain.toolroll/tests/run.mjs
+node ~/.config/omarchy/plugins/iainfreestone.toolroll/tests/run.mjs
 ```
 
 There is a second suite that checks each tool against an answer this plugin did
@@ -521,7 +531,7 @@ the tool's output is compared with it. Asserting that a tool *returns without
 throwing* is a much weaker claim than it looks:
 
 ```bash
-node ~/.config/omarchy/plugins/iain.toolroll/tests/crosscheck.mjs
+node ~/.config/omarchy/plugins/iainfreestone.toolroll/tests/crosscheck.mjs
 ```
 
 2043 assertions covering the codecs, digests (against published vectors and
@@ -546,7 +556,7 @@ Editing a `lib/*.js` file only needs `omarchy-shell shell rescanPlugins`.
 To drive a specific tool without clicking:
 
 ```bash
-omarchy-shell shell summon iain.toolroll '{"tool":"json","input":"{\"a\":1}"}'
+omarchy-shell shell summon iainfreestone.toolroll '{"tool":"json","input":"{\"a\":1}"}'
 ```
 
 Per-tool input and options are remembered in

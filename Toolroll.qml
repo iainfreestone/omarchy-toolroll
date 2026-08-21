@@ -30,7 +30,7 @@ Item {
   property bool opened: false
   // false: summoned layer-shell overlay. true: an ordinary window Hyprland
   // manages like any other, for keeping open beside your work.
-  property bool pinned: false
+  property bool detached: false
   property string filterText: ""
   property string selectedEntryId: "json"
   property string statusText: ""
@@ -274,15 +274,15 @@ Item {
   function dismiss() {
     root.opened = false
     if (root.shell && typeof root.shell.hide === "function")
-      root.shell.hide((root.manifest && root.manifest.id) || "iain.toolroll")
+      root.shell.hide((root.manifest && root.manifest.id) || "iainfreestone.toolroll")
   }
 
   // Also reachable over IPC, where every argument arrives as a string:
-  //   omarchy-shell shell call iain.toolroll setPinned true
-  function setPinned(value) {
+  //   omarchy-shell shell call iainfreestone.toolroll setDetached true
+  function setDetached(value) {
     var next = value === true || value === "true"
-    if (next === root.pinned) return
-    root.pinned = next
+    if (next === root.detached) return
+    root.detached = next
     persistTimer.restart()
     root.statusText = next
       ? "Pinned — an ordinary window now, so move, resize and tile it as usual"
@@ -598,7 +598,7 @@ Item {
   // Run a chain (or a single tool) over the clipboard without ever showing the
   // window, and put the result back on the clipboard:
   //
-  //   omarchy-shell shell call iain.toolroll run '{"chain":"url-param-json"}'
+  //   omarchy-shell shell call iainfreestone.toolroll run '{"chain":"url-param-json"}'
   //
   // Bound to a key, that is the whole interaction for the common case: copy,
   // press, paste. The plugin is keepLoaded, so there is nothing to start.
@@ -740,7 +740,7 @@ Item {
       if (root.filterText.length > 0) { searchField.text = ""; setFilter("") }
       // A pinned window closes the way every other window does, not with
       // Escape — there, Escape just walks back out of what you were typing.
-      else if (!root.pinned) root.dismiss()
+      else if (!root.detached) root.dismiss()
       return
     }
     searchField.forceActiveFocus()
@@ -878,7 +878,7 @@ Item {
     stateFile.setText(JSON.stringify({
       version: 1,
       lastTool: root.selectedEntryId,
-      pinned: root.pinned,
+      detached: root.detached,
       chainHintShown: root.chainHintShown,
       recent: root.recentIds,
       pinnedTools: root.pinnedIds,
@@ -897,7 +897,9 @@ Item {
       if (Array.isArray(parsed.pinnedTools)) root.pinnedIds = parsed.pinnedTools
       if (Array.isArray(parsed.collapsedSections)) root.collapsedSections = parsed.collapsedSections
       if (Array.isArray(parsed.sectionOrder)) root.sectionOrder = parsed.sectionOrder
-      if (parsed.pinned === true) root.pinned = true
+      // `pinned` was this setting's name before it collided with the
+      // sidebar's pinned tools; still read it so the choice survives.
+      if (parsed.detached === true || parsed.pinned === true) root.detached = true
       if (parsed.chainHintShown === true) root.chainHintShown = true
       if (parsed.lastTool) selectEntry(parsed.lastTool, undefined, null)
     } catch (e) {
@@ -977,7 +979,7 @@ Item {
 
   Item {
     id: content
-    parent: root.pinned ? floatingHost : cardHost
+    parent: root.detached ? floatingHost : cardHost
     anchors.fill: parent
 
     Shortcut {
@@ -1081,27 +1083,28 @@ Item {
         }
 
         Button {
-          id: pinButton
+          id: shapeButton
           anchors.right: parent.right
           anchors.verticalCenter: parent.verticalCenter
-          iconText: root.pinned ? "󰤱" : "󰐃"
-          tooltipText: root.pinned
-            ? "Unpin — back to the summoned overlay"
-            : "Pin to a window you can keep open beside your work"
+          text: root.detached ? "Overlay" : "Detach"
+          iconText: root.detached ? "󰨟" : "󰏌"
+          tooltipText: root.detached
+            ? "Back to the overlay: summoned over your work, gone on Escape"
+            : "Detach into an ordinary window you can keep open beside your work"
           bordered: true
-          selected: root.pinned
+          selected: root.detached
           foreground: root.foreground
           accent: root.accent
           iconSize: Style.font.iconSmall
           horizontalPadding: Style.spacing.sm
           verticalPadding: Style.spacing.xxs
-          onClicked: root.setPinned(!root.pinned)
+          onClicked: root.setDetached(!root.detached)
         }
 
         Text {
           anchors.left: searchField.right
           anchors.leftMargin: Style.spacing.lg
-          anchors.right: pinButton.left
+          anchors.right: shapeButton.left
           anchors.rightMargin: Style.spacing.md
           anchors.verticalCenter: parent.verticalCenter
           text: root.statusText.length > 0 ? root.statusText
@@ -1198,7 +1201,7 @@ Item {
 
   PanelWindow {
     id: panel
-    visible: root.opened && !root.pinned
+    visible: root.opened && !root.detached
     anchors { top: true; bottom: true; left: true; right: true }
     color: "transparent"
     WlrLayershell.namespace: "omarchy-toolroll"
@@ -1246,7 +1249,7 @@ Item {
 
   FloatingWindow {
     id: floating
-    visible: root.opened && root.pinned
+    visible: root.opened && root.detached
     title: "Toolroll"
     color: root.background
     implicitWidth: Style.space(1120)
@@ -1256,7 +1259,7 @@ Item {
     // Closing from the titlebar or with the compositor's close key should read
     // as dismissing the plugin, not leave it "open" with nothing on screen.
     onVisibleChanged: {
-      if (!visible && root.opened && root.pinned) root.dismiss()
+      if (!visible && root.opened && root.detached) root.dismiss()
     }
 
     FocusScope {
