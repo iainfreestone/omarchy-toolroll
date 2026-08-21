@@ -83,6 +83,7 @@ Flow {
       spacing: Style.spacing.xxs
 
       Text {
+        textFormat: Text.PlainText
         anchors.verticalCenter: parent.verticalCenter
         text: parent.descriptor ? parent.descriptor.label + " " : ""
         color: Qt.darker(root.foreground, 1.4)
@@ -118,6 +119,7 @@ Flow {
       spacing: Style.spacing.xs
 
       Text {
+        textFormat: Text.PlainText
         anchors.verticalCenter: parent.verticalCenter
         text: parent.descriptor ? parent.descriptor.label : ""
         color: Qt.darker(root.foreground, 1.4)

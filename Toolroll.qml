@@ -351,6 +351,7 @@ Item {
 
   function saveChains() {
     chainsFile.setText(Chain.serializeStore(root.chains))
+    restrictToOwner(root.chainsPath)
   }
 
   function loadChains(raw) {
@@ -496,10 +497,41 @@ Item {
     saveProc.running = true
   }
 
+  // The text goes over stdin, never argv.
+  //
+  // A process's arguments are world-readable through /proc/<pid>/cmdline for as
+  // long as it lives, so passing the copied text as an argument published it to
+  // every other process on the machine. This is a tool people paste tokens and
+  // keys into, and copying the result is the last thing they do with it — the
+  // one moment it must not leak. stdin is private to the two processes.
+  // Serial, like the image renders above: a second copy arriving while the
+  // first is still running would otherwise overwrite `pending` and be lost.
+  property var clipboardQueue: []
+
+  Process {
+    id: clipboardWriter
+    property string pending: ""
+    command: ["wl-copy"]
+    onStarted: {
+      write(clipboardWriter.pending)
+      clipboardWriter.pending = ""
+      // Closing stdin is what tells wl-copy the content has ended.
+      stdinEnabled = false
+    }
+    onExited: root.drainClipboardQueue()
+  }
+
+  function drainClipboardQueue() {
+    if (clipboardWriter.running || root.clipboardQueue.length === 0) return
+    var next = root.clipboardQueue.shift()
+    clipboardWriter.pending = next
+    clipboardWriter.stdinEnabled = true
+    clipboardWriter.running = true
+  }
+
   function copyText(text) {
-    // Passed as an argument rather than through stdin, and after `--`, so
-    // content that begins with a dash can't turn into a wl-copy flag.
-    Quickshell.execDetached(["wl-copy", "--", String(text)])
+    root.clipboardQueue.push(String(text))
+    drainClipboardQueue()
   }
 
   // ------------------------------------------------------------ images
@@ -874,7 +906,21 @@ Item {
     onTriggered: root.saveState()
   }
 
+  // Both files this plugin writes are made owner-only.
+  //
+  // FileView creates them with the process umask, which on a stock install is
+  // 0644 — world-readable. The session store holds whatever you last had in
+  // each tool, which for this plugin means tokens, config and payloads, and a
+  // saved chain can carry a pattern you would rather not publish to every
+  // account on the machine. Re-applied after each write because an atomic write
+  // replaces the file, and its replacement is a new inode with fresh
+  // permissions.
+  function restrictToOwner(path) {
+    Quickshell.execDetached(["chmod", "600", path])
+  }
+
   function saveState() {
+    restrictToOwner(root.statePath)
     stateFile.setText(JSON.stringify({
       version: 1,
       lastTool: root.selectedEntryId,
@@ -925,7 +971,7 @@ Item {
     atomicWrites: true
     printErrors: false
     watchChanges: true
-    onLoaded: root.loadChains(text())
+    onLoaded: { root.restrictToOwner(root.chainsPath); root.loadChains(text()) }
     onLoadFailed: root.loadChains("")
     onFileChanged: reload()
   }
@@ -935,7 +981,7 @@ Item {
     path: root.statePath
     atomicWrites: true
     printErrors: false
-    onLoaded: root.loadState(text())
+    onLoaded: { root.restrictToOwner(root.statePath); root.loadState(text()) }
   }
 
   Connections {
@@ -1049,6 +1095,7 @@ Item {
         height: Math.max(searchField.height, titleText.implicitHeight)
 
         Text {
+          textFormat: Text.PlainText
           id: titleText
           anchors.left: parent.left
           anchors.verticalCenter: parent.verticalCenter
@@ -1102,6 +1149,7 @@ Item {
         }
 
         Text {
+          textFormat: Text.PlainText
           anchors.left: searchField.right
           anchors.leftMargin: Style.spacing.lg
           anchors.right: shapeButton.left
@@ -1127,6 +1175,7 @@ Item {
         visible: root.suggestions.length > 1
 
         Text {
+          textFormat: Text.PlainText
           anchors.verticalCenter: parent.verticalCenter
           text: "From clipboard:"
           color: Qt.darker(root.foreground, 1.5)

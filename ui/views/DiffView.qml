@@ -99,6 +99,7 @@ Item {
               spacing: Style.spacing.sm
 
               Text {
+                textFormat: Text.PlainText
                 width: Style.space(46)
                 text: (modelData.leftNo ? String(modelData.leftNo) : "") + " "
                 color: Qt.darker(host.foreground, 1.7)
@@ -108,6 +109,7 @@ Item {
               }
 
               Text {
+                textFormat: Text.PlainText
                 width: Style.space(46)
                 text: (modelData.rightNo ? String(modelData.rightNo) : "") + " "
                 color: Qt.darker(host.foreground, 1.7)
@@ -117,6 +119,7 @@ Item {
               }
 
               Text {
+                textFormat: Text.PlainText
                 id: lineText
                 width: rowList.width - Style.space(110)
                 text: (modelData.type === "add" ? "+ " : (modelData.type === "remove" ? "− " : "  ")) + modelData.text
@@ -131,6 +134,7 @@ Item {
       }
 
       Text {
+        textFormat: Text.PlainText
         anchors.centerIn: parent
         visible: rowList.count === 0
         text: "Paste text into both panes to compare them"

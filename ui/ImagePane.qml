@@ -52,6 +52,7 @@ BorderSurface {
     height: Math.max(Style.spacing.controlHeight - Style.space(4), headerLabel.implicitHeight)
 
     Text {
+      textFormat: Text.PlainText
       id: headerLabel
       anchors.left: parent.left
       anchors.verticalCenter: parent.verticalCenter
@@ -63,6 +64,7 @@ BorderSurface {
     }
 
     Text {
+      textFormat: Text.PlainText
       anchors.left: headerLabel.right
       anchors.leftMargin: Style.spacing.md
       anchors.right: headerActions.left
@@ -122,6 +124,7 @@ BorderSurface {
   }
 
   Text {
+    textFormat: Text.PlainText
     anchors.centerIn: parent
     width: parent.width - Style.spacing.xxl
     visible: !root.hasImage

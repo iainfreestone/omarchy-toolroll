@@ -482,6 +482,25 @@ when encoding — accept only paths this plugin created. They cannot be pointed
 at `~/.ssh/id_rsa` by a crafted chain or a clipboard, which matters because
 chains are meant to be shared.
 
+**Nothing renders as rich text except the preview.** Qt's `Text` defaults to
+`AutoText`, which promotes anything that looks like HTML to rich text — and the
+rich-text engine fetches remote images. Report rows, diff rows and history
+previews all display clipboard content or tool output, so every `Text` in the
+plugin declares `Text.PlainText`. The single exception is the preview pane,
+which receives only sanitized content. A test walks the QML and fails if any
+`Text` is added without a format.
+
+**Copied text goes over stdin, never argv.** A process's arguments are
+world-readable through `/proc/<pid>/cmdline`, and `wl-copy` stays resident to
+own the selection — so passing the copied text as an argument would publish it
+to every process on the machine, at the exact moment it is most likely to be a
+token.
+
+**The two files it writes are owner-only.** `FileView` creates files with the
+process umask, which is `0644` on a stock install; the session store holds
+whatever was last in each tool, so `0600` is re-applied after every write —
+an atomic write replaces the file, and the replacement is a new inode.
+
 **The RegExp tester never runs on the UI thread**, whatever the input size. It
 is the only tool that executes a pattern you wrote, a pattern with catastrophic
 backtracking cannot be interrupted once started, and the thread it can wedge

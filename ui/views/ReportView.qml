@@ -66,6 +66,7 @@ Item {
               spacing: Style.spacing.md
 
               Text {
+                textFormat: Text.PlainText
                 anchors.verticalCenter: parent.verticalCenter
                 width: Style.space(150)
                 text: modelData.label
@@ -87,6 +88,7 @@ Item {
               }
 
               Text {
+                textFormat: Text.PlainText
                 id: valueText
                 anchors.verticalCenter: parent.verticalCenter
                 width: parent.width - Style.space(150) - Style.spacing.md * 2
@@ -136,6 +138,7 @@ Item {
         }
 
         Text {
+          textFormat: Text.PlainText
           width: parent.width
           visible: root.report !== null && root.report.fields.length === 0
             && root.report.sections.length === 0 && root.report.info.length > 0

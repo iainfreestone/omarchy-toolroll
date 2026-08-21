@@ -100,6 +100,7 @@ Item {
       }
 
       Text {
+        textFormat: Text.PlainText
         id: chevron
         anchors.left: parent.left
         anchors.leftMargin: Style.spacing.sm
@@ -126,6 +127,7 @@ Item {
       // Folded away, the heading is all that is left, so it says what is
       // behind it rather than leaving you to remember.
       Text {
+        textFormat: Text.PlainText
         anchors.left: headingText.right
         anchors.leftMargin: Style.spacing.xs
         anchors.baseline: headingText.baseline
@@ -213,6 +215,7 @@ Item {
         spacing: Style.spacing.md
 
         Text {
+          textFormat: Text.PlainText
           anchors.verticalCenter: parent.verticalCenter
           width: Style.font.icon + Style.space(2)
           text: row.modelData.icon
@@ -229,6 +232,7 @@ Item {
         }
 
         Text {
+          textFormat: Text.PlainText
           anchors.verticalCenter: parent.verticalCenter
           width: parent.width - Style.font.icon - Style.space(2) - Style.spacing.md
             - (pin.visible ? pin.width + Style.spacing.xs : 0)
@@ -332,6 +336,7 @@ Item {
   }
 
   Text {
+    textFormat: Text.PlainText
     anchors.centerIn: parent
     visible: listView.count === 0
     text: "No tool matches"

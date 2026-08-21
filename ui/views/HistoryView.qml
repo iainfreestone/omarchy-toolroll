@@ -62,6 +62,7 @@ Item {
     }
 
     Text {
+      textFormat: Text.PlainText
       width: parent.width
       visible: root.entries.length === 0
       text: "Runs are recorded here as you work, and kept in memory only —\n"
@@ -107,6 +108,7 @@ Item {
                 spacing: Style.spacing.sm
 
                 Text {
+                  textFormat: Text.PlainText
                   text: row.modelData.label
                   color: host.foreground
                   font.family: Style.font.menuFamily
@@ -115,6 +117,7 @@ Item {
                 }
 
                 Text {
+                  textFormat: Text.PlainText
                   text: History.relative(row.modelData, root.now)
                   color: Qt.darker(host.foreground, 1.55)
                   font.family: Style.font.menuFamily
@@ -123,6 +126,7 @@ Item {
               }
 
               Text {
+                textFormat: Text.PlainText
                 id: previewText
                 width: parent.width
                 text: History.preview(row.modelData.input, 140)

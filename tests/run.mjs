@@ -1783,4 +1783,83 @@ eq("a collapsed section still moves with the rest",
   Sections.names(Sections.arrange(sidebar, ["Generators", "Format & validate"], folded)),
   ["Chains", "Pinned & recent", "Generators", "Format & validate", "Encode & decode", "Text & data"])
 
+const pluginRoot = new URL("..", import.meta.url).pathname.replace(/\/$/, "")
+
+describe("no Text element renders untrusted input as rich text")
+// Qt's Text defaults to AutoText, which promotes anything that looks like HTML
+// to rich text — and the rich-text engine fetches remote images. Demonstrated
+// against a local listener: a Text with no textFormat requested
+// http://127.0.0.1/leak.png from its own content; the one beside it with
+// Text.PlainText requested nothing.
+//
+// Report rows, diff rows and history previews all display clipboard content or
+// tool output, so every Text in the plugin has to declare its format. This is a
+// source check because the sinks are QML, and a guard here is what stops the
+// next Text from being added without one.
+{
+  const qmlFiles = []
+  const walk = dir => {
+    for (const entry of fsSync.readdirSync(dir, { withFileTypes: true })) {
+      const full = dir + "/" + entry.name
+      if (entry.isDirectory()) walk(full)
+      else if (entry.name.endsWith(".qml")) qmlFiles.push(full)
+    }
+  }
+  walk(pluginRoot)
+
+  const offenders = []
+  let checked = 0
+  for (const file of qmlFiles) {
+    const lines = fsSync.readFileSync(file, "utf8").split("\n")
+    lines.forEach((line, i) => {
+      if (!/^\s*Text \{\s*$/.test(line)) return
+      checked++
+      // The format may be declared on any line of the element's body; in
+      // practice it is the first, and requiring that keeps the check simple.
+      const body = lines.slice(i + 1, i + 12).join("\n")
+      if (!/textFormat:/.test(body)) offenders.push(file.replace(pluginRoot, "") + ":" + (i + 1))
+    })
+  }
+  ok("there are Text elements to check", checked > 20, checked)
+  eq("every one declares a textFormat", offenders, [])
+
+  // Exactly one is allowed to render rich text, and only because everything
+  // reaching it has been through Sanitize.forPreview first.
+  const rich = []
+  for (const file of qmlFiles) {
+    fsSync.readFileSync(file, "utf8").split("\n").forEach((line, i) => {
+      if (/textFormat:/.test(line) && !/Text\.PlainText/.test(line))
+        rich.push(file.replace(pluginRoot, "") + ":" + (i + 1))
+    })
+  }
+  eq("and only the sanitized preview renders anything else", rich,
+    ["/ui/views/PreviewView.qml:62"])
+}
+
+describe("copied text never travels as a process argument")
+// Process arguments are world-readable through /proc/<pid>/cmdline for as long
+// as the process lives, and wl-copy stays resident to own the selection. This
+// is a tool people paste tokens into, so the copy is the one moment that must
+// not publish them to every other process on the machine.
+{
+  const shell = fsSync.readFileSync(pluginRoot + "/Toolroll.qml", "utf8")
+  ok("wl-copy is not handed the text in argv",
+    !/execDetached\(\[\s*"wl-copy"[^\]]*text/i.test(shell))
+  ok("it is spawned with no content arguments",
+    /command:\s*\["wl-copy"\]/.test(shell), "wl-copy command line changed")
+  ok("and the text is written to its stdin", /stdinEnabled/.test(shell) && /write\(/.test(shell))
+}
+
+describe("the files the plugin writes are owner-only")
+// FileView creates files with the process umask — 0644 on a stock install. The
+// session store holds whatever was last in each tool.
+{
+  const shell = fsSync.readFileSync(pluginRoot + "/Toolroll.qml", "utf8")
+  ok("permissions are restricted explicitly", /chmod", "600"/.test(shell))
+  // An atomic write replaces the file, so the mode has to be re-applied rather
+  // than set once at creation.
+  const calls = (shell.match(/restrictToOwner\(/g) || []).length
+  ok("for both files, on load and after every write", calls >= 5, calls + " call sites")
+}
+
 report()

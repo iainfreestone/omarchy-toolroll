@@ -87,6 +87,7 @@ BorderSurface {
       height: Math.max(Style.spacing.controlHeight - Style.space(4), headerLabel.implicitHeight)
 
       Text {
+        textFormat: Text.PlainText
         id: headerLabel
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
@@ -107,6 +108,7 @@ BorderSurface {
         visible: statusText.text.length > 0
 
         Text {
+          textFormat: Text.PlainText
           id: statusText
           anchors.fill: parent
           text: root.truncated

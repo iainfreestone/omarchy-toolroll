@@ -129,6 +129,7 @@ Item {
         }
 
         Text {
+          textFormat: Text.PlainText
           anchors.left: stepsLabel.right
           anchors.leftMargin: Style.spacing.md
           anchors.right: stepPicker.left
@@ -215,6 +216,7 @@ Item {
                   height: Math.max(nameText.implicitHeight, Style.spacing.controlHeight - Style.space(4))
 
                   Text {
+                    textFormat: Text.PlainText
                     id: stepNumber
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
@@ -226,6 +228,7 @@ Item {
                   }
 
                   Text {
+                    textFormat: Text.PlainText
                     id: nameText
                     anchors.left: stepNumber.right
                     anchors.right: stepButtons.left
@@ -293,6 +296,7 @@ Item {
                 }
 
                 Text {
+                  textFormat: Text.PlainText
                   width: parent.width
                   visible: text.length > 0
                   text: {
@@ -309,6 +313,7 @@ Item {
                 // A step that can't do anything where it is says so, rather
                 // than quietly passing its input along.
                 Text {
+                  textFormat: Text.PlainText
                   width: parent.width
                   visible: text.length > 0
                   text: card.outcome && card.outcome.warning ? "⚠  " + card.outcome.warning : ""
@@ -322,6 +327,7 @@ Item {
           }
 
           Text {
+            textFormat: Text.PlainText
             width: parent.width
             visible: root.stepCount === 0
             text: "A chain runs one tool's output into the next.\nUse Add step, above, to begin."

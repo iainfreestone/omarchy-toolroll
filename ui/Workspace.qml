@@ -558,6 +558,7 @@ Item {
         }
 
         Text {
+          textFormat: Text.PlainText
           width: parent.width
           text: root.chainMode ? Chain.describe(root.chain) : (root.tool ? root.tool.description : "")
           color: Qt.darker(root.foreground, 1.45)
@@ -582,6 +583,7 @@ Item {
         spacing: Style.spacing.sm
 
         Text {
+          textFormat: Text.PlainText
           anchors.verticalCenter: parent.verticalCenter
           text: root.runStatus
           visible: text.length > 0
@@ -704,6 +706,7 @@ Item {
       visible: !root.chainMode && root.tool !== null && root.tool.secondary !== undefined
 
       Text {
+        textFormat: Text.PlainText
         anchors.verticalCenter: parent.verticalCenter
         width: Style.space(90)
         text: root.tool && root.tool.secondary ? root.tool.secondary.label : ""
@@ -786,6 +789,7 @@ Item {
 
   property Component toolTitle: Component {
     Text {
+      textFormat: Text.PlainText
       text: root.tool ? root.tool.name : ""
       color: root.foreground
       font.family: Style.font.menuFamily

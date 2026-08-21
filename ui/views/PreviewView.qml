@@ -51,6 +51,9 @@ Item {
         anchors.margins: Style.spacing.lg
         clip: true
 
+        // The one deliberate rich-text sink in the plugin. Everything it is
+        // handed has been through Sanitize.forPreview first, which strips every
+        // resource reference that is not a data: URI — see lib/sanitize.js.
         Text {
           width: root.sideBySide
             ? sourcePane.width - Style.spacing.lg * 2 - Style.spacing.sm
