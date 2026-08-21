@@ -274,11 +274,11 @@ Item {
   function dismiss() {
     root.opened = false
     if (root.shell && typeof root.shell.hide === "function")
-      root.shell.hide((root.manifest && root.manifest.id) || "iainfreestone.toolroll")
+      root.shell.hide((root.manifest && root.manifest.id) || "io.github.iainfreestone.toolroll")
   }
 
   // Also reachable over IPC, where every argument arrives as a string:
-  //   omarchy-shell shell call iainfreestone.toolroll setDetached true
+  //   omarchy-shell shell call io.github.iainfreestone.toolroll setDetached true
   function setDetached(value) {
     var next = value === true || value === "true"
     if (next === root.detached) return
@@ -598,7 +598,7 @@ Item {
   // Run a chain (or a single tool) over the clipboard without ever showing the
   // window, and put the result back on the clipboard:
   //
-  //   omarchy-shell shell call iainfreestone.toolroll run '{"chain":"url-param-json"}'
+  //   omarchy-shell shell call io.github.iainfreestone.toolroll run '{"chain":"url-param-json"}'
   //
   // Bound to a key, that is the whole interaction for the common case: copy,
   // press, paste. The plugin is keepLoaded, so there is nothing to start.

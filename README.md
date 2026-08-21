@@ -15,7 +15,7 @@ and gets out of your way. Unless you detach it, in which case it stays.
 
 It opens on a key you choose — see [Install](#install).
 
-**[Install](#install)** · **[The tools](#the-tools)** ·
+**[Install](#install)** · **[Removal](#removal)** · **[The tools](#the-tools)** ·
 **[Samples](#samples)** · **[Clipboard detection](#clipboard-detection)** ·
 **[Chains](#chains)** · **[The sidebar](#the-sidebar)** ·
 **[Keys](#keys)** · **[Security](#security)** ·
@@ -25,7 +25,7 @@ It opens on a key you choose — see [Install](#install).
 
 ```bash
 omarchy plugin add https://github.com/iainfreestone/omarchy-toolroll.git
-omarchy plugin enable iainfreestone.toolroll
+omarchy plugin enable io.github.iainfreestone.toolroll
 ```
 
 Plugins land disabled so you can read the code before running it. This one is
@@ -40,8 +40,33 @@ and paste the command:
 
 ```lua
 -- ~/.config/hypr/bindings.lua
-o.bind("<your key>", "Toolroll", "omarchy-shell shell toggle iainfreestone.toolroll")
+o.bind("<your key>", "Toolroll", "omarchy-shell shell toggle io.github.iainfreestone.toolroll")
 ```
+
+## Removal
+
+```bash
+omarchy plugin remove io.github.iainfreestone.toolroll
+```
+
+That asks for confirmation, then deletes the plugin folder. Two files are left
+behind deliberately, because they are yours rather than the plugin's — your
+saved chains, and your settings, recent tools and per-tool inputs:
+
+```bash
+rm ~/.config/omarchy/toolroll-chains.json
+rm ~/.local/state/omarchy/toolroll.json
+```
+
+Delete the keybinding you added to `~/.config/hypr/bindings.lua` and nothing
+remains.
+
+Those two are the only files Toolroll ever writes to. It does not touch
+`shell.json`, your Hyprland config, or any file it did not create itself —
+nothing of yours is modified without you doing it. The only other things it
+puts on disk are the QR images it renders, which go to `$XDG_RUNTIME_DIR` and
+vanish with the session, and whatever you deliberately send to `~/Pictures` with
+the **Save** button. It reads your theme's `colors.toml`, and never writes it.
 
 ## Requirements
 
@@ -168,7 +193,7 @@ the key:
 ```lua
 -- ~/.config/hypr/bindings.lua
 o.bind("<your key>", "Toolroll (selection)",
-  "omarchy-shell shell toggle iainfreestone.toolroll '{\"source\":\"primary\"}'")
+  "omarchy-shell shell toggle io.github.iainfreestone.toolroll '{\"source\":\"primary\"}'")
 ```
 
 Every input pane also has a paste-the-selection button next to paste-from-
@@ -227,7 +252,7 @@ being told what is wrong beats being refused.
 ### Running a chain without opening anything
 
 ```bash
-omarchy-shell shell call iainfreestone.toolroll run '{"chain":"url-param-json"}'
+omarchy-shell shell call io.github.iainfreestone.toolroll run '{"chain":"url-param-json"}'
 ```
 
 That reads the clipboard, runs the chain, writes the result back, and posts a
@@ -237,7 +262,7 @@ interaction is: copy, press, paste.
 ```lua
 -- ~/.config/hypr/bindings.lua
 o.bind("<your key>", "Decode URL param",
-  "omarchy-shell shell call iainfreestone.toolroll run '{\"chain\":\"url-param-json\"}'")
+  "omarchy-shell shell call io.github.iainfreestone.toolroll run '{\"chain\":\"url-param-json\"}'")
 ```
 
 Tools whose input is an image work headlessly too, reading the clipboard's
@@ -380,7 +405,7 @@ window is an ordinary toplevel and closes like any other. The choice is remember
 reachable over IPC if you would rather bind it:
 
 ```bash
-omarchy-shell shell call iainfreestone.toolroll setDetached true
+omarchy-shell shell call io.github.iainfreestone.toolroll setDetached true
 ```
 
 If you would rather it floated than tiled:
@@ -522,7 +547,7 @@ The libraries under `lib/` are QML-flavoured JavaScript (`.pragma library`,
 exact same source the shell runs:
 
 ```bash
-node ~/.config/omarchy/plugins/iainfreestone.toolroll/tests/run.mjs
+node ~/.config/omarchy/plugins/io.github.iainfreestone.toolroll/tests/run.mjs
 ```
 
 There is a second suite that checks each tool against an answer this plugin did
@@ -531,7 +556,7 @@ the tool's output is compared with it. Asserting that a tool *returns without
 throwing* is a much weaker claim than it looks:
 
 ```bash
-node ~/.config/omarchy/plugins/iainfreestone.toolroll/tests/crosscheck.mjs
+node ~/.config/omarchy/plugins/io.github.iainfreestone.toolroll/tests/crosscheck.mjs
 ```
 
 2043 assertions covering the codecs, digests (against published vectors and
@@ -556,7 +581,7 @@ Editing a `lib/*.js` file only needs `omarchy-shell shell rescanPlugins`.
 To drive a specific tool without clicking:
 
 ```bash
-omarchy-shell shell summon iainfreestone.toolroll '{"tool":"json","input":"{\"a\":1}"}'
+omarchy-shell shell summon io.github.iainfreestone.toolroll '{"tool":"json","input":"{\"a\":1}"}'
 ```
 
 Per-tool input and options are remembered in
